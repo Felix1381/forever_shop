@@ -5,9 +5,12 @@ import { useState } from 'react';
 import { Menu, X, Leaf } from 'lucide-react';
 import { Button } from './ui/button';
 import { ThemeToggle } from './ThemeToggle';
+import CartButton from './CartButton';
+import CartDrawer from './CartDrawer';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const navigation = [
     { name: 'Accueil', href: '/' },
@@ -45,8 +48,11 @@ export default function Header() {
           </nav>
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <ThemeToggle />
+            
+            {/* Cart Button */}
+            <CartButton onClick={() => setIsCartOpen(true)} />
             
             {/* CTA Button */}
             <Button 
@@ -103,6 +109,9 @@ export default function Header() {
           </div>
         )}
       </div>
+
+      {/* Cart Drawer */}
+      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </header>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { products, categories, getProductsByCategory, type Product } from '@/data/products';
 import { useBoutiqueAnimations } from '@/hooks/useBoutiqueAnimations';
+import { useCart } from '@/contexts/CartContext';
 import { 
   ShoppingCart, 
   Heart, 
@@ -34,8 +35,26 @@ export default function BoutiquePage() {
   const [priceRange, setPriceRange] = useState<[number | '', number | '']>([0, 50000]);
   const [selectedBenefits, setSelectedBenefits] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('name');
+  const [isHydrated, setIsHydrated] = useState(false);
   
   const { headerRef, filtersRef, productsGridRef, animateFilterChange } = useBoutiqueAnimations();
+  const { addToCart, isInCart, getItemQuantity } = useCart();
+
+  // Ensure hydration is complete
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  // Function to add to cart while preserving scroll position
+  const handleAddToCart = useCallback((product: Product) => {
+    const scrollPosition = window.scrollY;
+    addToCart(product);
+    
+    // Restore scroll position after a brief delay to ensure DOM updates
+    requestAnimationFrame(() => {
+      window.scrollTo(0, scrollPosition);
+    });
+  }, [addToCart]);
   
   // Close sidebar on escape key
   useEffect(() => {
@@ -170,11 +189,15 @@ export default function BoutiquePage() {
                   </Button>
                   <Button 
                     size="sm" 
-                    variant="outline"
-                    className="px-3 hover:bg-forever-yellow hover:text-black hover:border-forever-yellow"
+                    variant={isHydrated && isInCart(product.id) ? "default" : "outline"}
+                    className={`px-3 ${isHydrated && isInCart(product.id) ? 'bg-forever-yellow text-black' : 'hover:bg-forever-yellow hover:text-black hover:border-forever-yellow'}`}
                     disabled={!product.inStock}
+                    onClick={() => handleAddToCart(product)}
                   >
                     <ShoppingCart className="h-4 w-4" />
+                    {isHydrated && getItemQuantity(product.id) > 0 && (
+                      <span className="ml-1 font-bold">{getItemQuantity(product.id)}</span>
+                    )}
                   </Button>
                 </div>
               </div>
@@ -264,11 +287,15 @@ export default function BoutiquePage() {
             </Button>
             <Button 
               size="sm" 
-              variant="outline"
-              className="px-2 hover:bg-forever-yellow hover:text-black hover:border-forever-yellow"
+              variant={isHydrated && isInCart(product.id) ? "default" : "outline"}
+              className={`px-2 ${isHydrated && isInCart(product.id) ? 'bg-forever-yellow text-black' : 'hover:bg-forever-yellow hover:text-black hover:border-forever-yellow'}`}
               disabled={!product.inStock}
+              onClick={() => addToCart(product)}
             >
               <ShoppingCart className="h-3 w-3" />
+              {isHydrated && getItemQuantity(product.id) > 0 && (
+                <span className="ml-1 text-xs font-bold">{getItemQuantity(product.id)}</span>
+              )}
             </Button>
           </div>
         </CardFooter>
