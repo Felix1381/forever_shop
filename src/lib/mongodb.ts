@@ -34,7 +34,13 @@ async function dbConnect() {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts);
+    // Ensure database name is included (same logic as createAdmin script)
+    const dbUri = MONGODB_URI.includes('mongodb+srv') 
+      ? `${MONGODB_URI}${MONGODB_URI.endsWith('/') ? '' : '/'}forever_shop`
+      : MONGODB_URI;
+    
+    console.log('🔌 Connecting to MongoDB with URI:', dbUri.replace(/\/\/[^:]+:[^@]+@/, '//***:***@'));
+    cached.promise = mongoose.connect(dbUri, opts);
   }
 
   try {

@@ -6,11 +6,9 @@ export default withAuth(
     const token = req.nextauth.token;
     const { pathname } = req.nextUrl;
 
-    // Check if user is trying to access admin routes
+    // Skip NextAuth for admin routes - they use custom authentication
     if (pathname.startsWith('/admin')) {
-      if (!token || token.role !== 'admin') {
-        return NextResponse.redirect(new URL('/auth/signin', req.url));
-      }
+      return NextResponse.next();
     }
 
     // Check if user is trying to access protected API routes
@@ -39,13 +37,14 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
         
-        // Allow public routes
+        // Allow public routes and admin routes (admin uses custom auth)
         if (
           pathname.startsWith('/api/auth') ||
           pathname === '/' ||
           pathname.startsWith('/auth') ||
           pathname.startsWith('/_next') ||
-          pathname.startsWith('/favicon')
+          pathname.startsWith('/favicon') ||
+          pathname.startsWith('/admin')
         ) {
           return true;
         }
@@ -59,8 +58,8 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    '/admin/:path*',
-    '/api/admin/:path*',
+    // Exclude /admin routes - they use custom authentication
+    // '/admin/:path*',  // Commented out - admin uses custom auth
     '/api/user/:path*',
     '/dashboard/:path*'
   ]
